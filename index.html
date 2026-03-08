@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Olma Store</title>
+    <!-- Telegram WebApp Library -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* Modern Apple-style Design (Clean UI) */
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #f5f5f7);
+            --text-color: var(--tg-theme-text-color, #1d1d1f);
+            --hint-color: var(--tg-theme-hint-color, #86868b);
+            --button-color: var(--tg-theme-button-color, #0071e3);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+            --card-bg-color: var(--tg-theme-secondary-bg-color, #ffffff);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+            padding-bottom: 90px; /* Space for the Telegram MainButton */
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-align: center;
+            letter-spacing: -0.5px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background-color: var(--card-bg-color);
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .product-card:active {
+            transform: scale(0.96);
+        }
+
+        .product-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: contain;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            background-color: #f5f5f7;
+            padding: 10px;
+        }
+
+        .product-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            text-align: center;
+            line-height: 1.2;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-price {
+            font-size: 14px;
+            color: var(--hint-color);
+            font-weight: 500;
+            margin-bottom: 16px;
+        }
+
+        /* +/- Controls */
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background-color: #f2f2f7;
+            border-radius: 20px;
+            padding: 4px;
+        }
+
+        .btn-control {
+            background-color: #ffffff;
+            color: var(--text-color);
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+
+        .btn-control:active {
+            background-color: #e5e5ea;
+            transform: scale(0.9);
+        }
+
+        .quantity {
+            font-size: 16px;
+            font-weight: 600;
+            min-width: 24px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🍎 Olma Store</h1>
+    
+    <div class="grid-container" id="productGrid">
+        <!-- Maxsulotlar shu yerda JavaScript orqali generatsiya qilinadi -->
+    </div>
+
+    <script>
+        // Telegram WebApp ni initsializatsiya qilish
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Ilovani to'liq ekranga ochish
+
+        // Vaqtincha mahsulotlar ro'yxati (Apple uslubida tasvirlar bilan)
+        const products = [
+            { id: 1, name: "IPhone 15 Pro Max", price: 15000000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1692845702708" },
+            { id: 2, name: "AirPods Pro (2nd gen)", price: 3200000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MTJV3?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1694014871985" },
+            { id: 3, name: "Apple Watch Series 9", price: 5600000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/watch-s9-alum-midnight-nc-45_VW_34FR+watch-45-sport-midnight-nc-s9_VW_34FR_WF_CO?wid=2000&hei=2000&fmt=png-alpha&.v=1693201402377" },
+            { id: 4, name: "MacBook Air M2", price: 14500000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/macbook-air-midnight-select-20220606?wid=904&hei=840&fmt=jpeg&qlt=90&.v=1653084303665" },
+            { id: 5, name: "iPad Pro 12.9\"", price: 16000000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/ipad-pro-13-select-wifi-spacegray-202210?wid=940&hei=1112&fmt=p-jpg&qlt=95&.v=1664411207213" },
+            { id: 6, name: "Apple Pencil 2", price: 1800000, img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/MU8F2?wid=1144&hei=1144&fmt=jpeg&qlt=90&.v=1540596407165" }
+        ];
+
+        let cart = {}; // { productId: quantity }
+
+        // Narxni chiroyli ko'rinishga keltirish
+        function formatPrice(price) {
+            return price.toLocaleString('uz-UZ') + " so'm";
+        }
+
+        // Mahsulotlarni ekranga chiqarish
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            
+            products.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'product-card';
+                card.innerHTML = `
+                    <img src="${p.img}" alt="${p.name}" class="product-image" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="product-name">${p.name}</div>
+                    <div class="product-price">${formatPrice(p.price)}</div>
+                    <div class="controls">
+                        <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
+                        <span class="quantity" id="qty-${p.id}">0</span>
+                        <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Savatchani yangilash (+ va - tugmalari uchun)
+        window.updateCart = function(productId, change) {
+            if (!cart[productId]) {
+                cart[productId] = 0;
+            }
+            
+            cart[productId] += change;
+            
+            if (cart[productId] < 0) {
+                cart[productId] = 0;
+            }
+            
+            document.getElementById(`qty-${productId}`).innerText = cart[productId];
+
+            // Haptic feedback (telefon titrashi)
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
+
+            updateMainButton();
+        }
+
+        // Asosiy "Buyurtma berish" tugmasini boshqarish
+        function updateMainButton() {
+            let totalItems = 0;
+            let totalPrice = 0;
+
+            for (const [id, qty] of Object.entries(cart)) {
+                if (qty > 0) {
+                    totalItems += qty;
+                    const product = products.find(p => p.id == parseInt(id));
+                    totalPrice += product.price * qty;
+                }
+            }
+
+            if (totalItems > 0) {
+                tg.MainButton.setText(`BUYURTMA BERISH (${formatPrice(totalPrice)})`);
+                tg.MainButton.color = tg.themeParams.button_color || '#0071e3';
+                if (!tg.MainButton.isVisible) tg.MainButton.show();
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        // "Buyurtma berish" tugmasi bosilganda JSON yuborish
+        Telegram.WebApp.onEvent('mainButtonClicked', function() {
+            const finalOrder = [];
+            for (const [id, qty] of Object.entries(cart)) {
+                if (qty > 0) {
+                    const product = products.find(p => p.id == parseInt(id));
+                    finalOrder.push({
+                        id: product.id,
+                        name: product.name,
+                        price: product.price,
+                        quantity: qty
+                    });
+                }
+            }
+            
+            // Botga JSON formatda ma'lumot jo'natish
+            tg.sendData(JSON.stringify(finalOrder));
+        });
+
+        // Boshlang'ich holat
+        renderProducts();
+        
+        // Ilova tayyor ekanini bildirish
+        tg.ready();
+    </script>
+</body>
+</html>

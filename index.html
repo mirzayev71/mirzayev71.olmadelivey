@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- MUST BE FIRST SCRIPT -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta name="theme-color" content="#ffffff" />
     <title>Olma Store</title>
     <!-- Telegram WebApp Library -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         /* Modern Apple-style Design (Clean UI) - Forced White Theme */
         :root {
@@ -395,97 +396,98 @@
                     <span>Jami:</span>
                     <span id="modalTotalSum">0 so'm</span>
                 </div>
-                <button class="btn-confirm" onclick="sendOrder()">BUYURTMANI TASDIQLASH</button>
+                <!-- FORCE ORDER BUTTON -->
+                <button class="btn-confirm" onclick="forceOrder()">BUYURTMANI TASDIQLASH</button>
             </div>
         </div>
-    </div>
 
 
-    <script>
-        // Init Telegram WebApp
-        const tg = window.Telegram.WebApp;
-        // Ensure ready() is called as early as possible
-        try {
-            tg.ready(); // Called at the very beginning of the script
-        } catch (e) {
-            console.warn('Telegram WebApp not available yet', e);
-        }
+        <script>
+            // Init Telegram WebApp
+            const tg = window.Telegram.WebApp;
+            // Ensure ready() is called as early as possible
+            try {
+                tg.ready(); // Called at the very beginning of the script
+                tg.expand();
+            } catch (e) {
+                console.warn('Telegram WebApp not available yet', e);
+            }
 
-        // Force white theme for WebApp chrome
-        try {
-            tg.backgroundColor = "#ffffff";
-            tg.headerColor = "#ffffff";
-        } catch (e) {
-            // ignore if API not ready
-        }
+            // Force white theme for WebApp chrome
+            try {
+                tg.backgroundColor = "#ffffff";
+                tg.headerColor = "#ffffff";
+            } catch (e) {
+                // ignore if API not ready
+            }
 
-        tg.expand(); // Full screen (best-effort)
+            tg.expand(); // Full screen (best-effort)
 
-        // Current UI State
-        let currentCategory = 'Hammasi';
-        let cart = {}; // { productId: quantity }
+            // Current UI State
+            let currentCategory = 'Hammasi';
+            let cart = {}; // { productId: quantity }
 
-        // MOCK DATA (Categories aligned with user's backend DB)
-        const allProducts = [
-            { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Telefon", img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1692845702708" },
-            { id: 2, name: "Qora Non", price: 4000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Non" },
-            { id: 3, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Cola" },
-            { id: 4, name: "Fanta 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Fanta" },
-            { id: 5, name: "Qurbonobod Pivo", price: 25000, category: "Alkogol", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Pivo" },
-            { id: 6, name: "Marlboro Gold", price: 30000, category: "Tamaki", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Marlboro" },
-            { id: 7, name: "Snickers", price: 9000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Snickers" }
-        ];
+            // MOCK DATA (Categories aligned with user's backend DB)
+            const allProducts = [
+                { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Telefon", img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1692845702708" },
+                { id: 2, name: "Qora Non", price: 4000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Non" },
+                { id: 3, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Cola" },
+                { id: 4, name: "Fanta 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Fanta" },
+                { id: 5, name: "Qurbonobod Pivo", price: 25000, category: "Alkogol", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Pivo" },
+                { id: 6, name: "Marlboro Gold", price: 30000, category: "Tamaki", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Marlboro" },
+                { id: 7, name: "Snickers", price: 9000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Snickers" }
+            ];
 
-        function formatPrice(price) {
-            return price.toLocaleString('uz-UZ') + " so'm";
-        }
+            function formatPrice(price) {
+                return price.toLocaleString('uz-UZ') + " so'm";
+            }
 
-        function filterCategory(categoryName) {
-            currentCategory = categoryName;
+            function filterCategory(categoryName) {
+                currentCategory = categoryName;
 
-            // Highlight active chip
-            const chips = document.querySelectorAll('.category-chip');
-            chips.forEach(chip => {
-                if (chip.innerText === categoryName) {
-                    chip.classList.add('active');
-                    // Scroll active to view
-                    chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                // Highlight active chip
+                const chips = document.querySelectorAll('.category-chip');
+                chips.forEach(chip => {
+                    if (chip.innerText === categoryName) {
+                        chip.classList.add('active');
+                        // Scroll active to view
+                        chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    } else {
+                        chip.classList.remove('active');
+                    }
+                });
+
+                // Show config for Disclaimer
+                const warningBanner = document.getElementById('ageWarning');
+                if (categoryName === 'Alkogol' || categoryName === 'Tamaki') {
+                    warningBanner.classList.add('show');
                 } else {
-                    chip.classList.remove('active');
+                    warningBanner.classList.remove('show');
                 }
-            });
 
-            // Show config for Disclaimer
-            const warningBanner = document.getElementById('ageWarning');
-            if (categoryName === 'Alkogol' || categoryName === 'Tamaki') {
-                warningBanner.classList.add('show');
-            } else {
-                warningBanner.classList.remove('show');
+                // Re-render
+                renderProducts();
             }
 
-            // Re-render
-            renderProducts();
-        }
+            function renderProducts() {
+                const grid = document.getElementById('productGrid');
+                grid.innerHTML = '';
 
-        function renderProducts() {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = '';
+                // Filter
+                const displayProducts = currentCategory === 'Hammasi'
+                    ? allProducts
+                    : allProducts.filter(p => p.category === currentCategory);
 
-            // Filter
-            const displayProducts = currentCategory === 'Hammasi'
-                ? allProducts
-                : allProducts.filter(p => p.category === currentCategory);
+                if (displayProducts.length === 0) {
+                    grid.innerHTML = '<div style="grid-column: span 2; text-align: center; margin-top: 40px; color: var(--hint-color);">Bu turkumda mahsulot topilmadi.</div>';
+                    return;
+                }
 
-            if (displayProducts.length === 0) {
-                grid.innerHTML = '<div style="grid-column: span 2; text-align: center; margin-top: 40px; color: var(--hint-color);">Bu turkumda mahsulot topilmadi.</div>';
-                return;
-            }
-
-            displayProducts.forEach(p => {
-                const qty = cart[p.id] || 0;
-                const card = document.createElement('div');
-                card.className = 'product-card';
-                card.innerHTML = `
+                displayProducts.forEach(p => {
+                    const qty = cart[p.id] || 0;
+                    const card = document.createElement('div');
+                    card.className = 'product-card';
+                    card.innerHTML = `
                     <img src="${p.img}" alt="${p.name}" class="product-image" onerror="this.src='https://via.placeholder.com/150/f5f5f7/888888?text=Rasm'">
                     <div class="product-name">${p.name}</div>
                     <div class="product-price">${formatPrice(p.price)}</div>
@@ -495,106 +497,106 @@
                         <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
                     </div>
                 `;
-                grid.appendChild(card);
-            });
-        }
-
-        window.updateCart = function (productId, change) {
-            if (!cart[productId]) {
-                cart[productId] = 0;
+                    grid.appendChild(card);
+                });
             }
 
-            cart[productId] += change;
+            window.updateCart = function (productId, change) {
+                if (!cart[productId]) {
+                    cart[productId] = 0;
+                }
 
-            if (cart[productId] < 0) {
-                cart[productId] = 0;
-            }
+                cart[productId] += change;
 
-            // Update UI Counters
-            const qtyElement = document.getElementById(`qty-${productId}`);
-            if (qtyElement) {
-                qtyElement.innerText = cart[productId];
-            }
+                if (cart[productId] < 0) {
+                    cart[productId] = 0;
+                }
 
-            // Haptic feed
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
+                // Update UI Counters
+                const qtyElement = document.getElementById(`qty-${productId}`);
+                if (qtyElement) {
+                    qtyElement.innerText = cart[productId];
+                }
 
-            updateMainButton();
+                // Haptic feed
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.impactOccurred('light');
+                }
 
-            // Auto update cart modal if it's currently open
-            const modal = document.getElementById('cartModal');
-            if (modal.classList.contains('active')) {
-                openCartModal(); // simply re-render
-            }
-        }
+                updateMainButton();
 
-        function getCartTotal() {
-            let totalItems = 0;
-            let totalPrice = 0;
-
-            for (const [id, qty] of Object.entries(cart)) {
-                if (qty > 0) {
-                    totalItems += qty;
-                    const product = allProducts.find(p => p.id == parseInt(id));
-                    if (product) totalPrice += product.price * qty;
+                // Auto update cart modal if it's currently open
+                const modal = document.getElementById('cartModal');
+                if (modal.classList.contains('active')) {
+                    openCartModal(); // simply re-render
                 }
             }
 
-            return { totalItems, totalPrice };
-        }
+            function getCartTotal() {
+                let totalItems = 0;
+                let totalPrice = 0;
 
-        function updateMainButton() {
-            const { totalItems, totalPrice } = getCartTotal();
-
-            if (totalItems > 0 && totalPrice > 0) {
-                try {
-                    tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
-                    // Some WebApp SDKs allow color setters; use safe API if available
-                    if (tg.MainButton.setParams) {
-                        tg.MainButton.setParams({ color: '#0071e3', text_color: '#ffffff' });
+                for (const [id, qty] of Object.entries(cart)) {
+                    if (qty > 0) {
+                        totalItems += qty;
+                        const product = allProducts.find(p => p.id == parseInt(id));
+                        if (product) totalPrice += product.price * qty;
                     }
-                    tg.MainButton.enable(); // Make button clickable
-                    if (!tg.MainButton.isVisible) tg.MainButton.show();
-                } catch (e) {
-                    console.warn('Failed to update MainButton using SDK', e);
                 }
-            } else {
-                try {
-                    tg.MainButton.disable(); // Disable if empty or zero price
-                    if (tg.MainButton.isVisible) tg.MainButton.hide();
-                } catch (e) {
-                    // ignore
-                }
-                closeCartModal(); // Close automatically if we empty the cart
-            }
-        }
 
-        // Logic for opening the overlay
-        function openCartModal() {
-            const modal = document.getElementById('cartModal');
-            const cartList = document.getElementById('cartList');
-            const modalTotalSum = document.getElementById('modalTotalSum');
-
-            cartList.innerHTML = ''; // Reset list
-
-            const { totalItems, totalPrice } = getCartTotal();
-
-            if (totalItems === 0) {
-                closeCartModal();
-                return;
+                return { totalItems, totalPrice };
             }
 
-            for (const [id, qty] of Object.entries(cart)) {
-                if (qty > 0) {
-                    const product = allProducts.find(p => p.id == parseInt(id));
-                    if (product) {
-                        const sumPrice = product.price * qty;
+            function updateMainButton() {
+                const { totalItems, totalPrice } = getCartTotal();
 
-                        const itemDiv = document.createElement('div');
-                        itemDiv.className = 'cart-item';
-                        itemDiv.innerHTML = `
+                if (totalItems > 0 && totalPrice > 0) {
+                    try {
+                        tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
+                        // Some WebApp SDKs allow color setters; use safe API if available
+                        if (tg.MainButton.setParams) {
+                            tg.MainButton.setParams({ color: '#0071e3', text_color: '#ffffff' });
+                        }
+                        tg.MainButton.enable(); // Make button clickable
+                        if (!tg.MainButton.isVisible) tg.MainButton.show();
+                    } catch (e) {
+                        console.warn('Failed to update MainButton using SDK', e);
+                    }
+                } else {
+                    try {
+                        tg.MainButton.disable(); // Disable if empty or zero price
+                        if (tg.MainButton.isVisible) tg.MainButton.hide();
+                    } catch (e) {
+                        // ignore
+                    }
+                    closeCartModal(); // Close automatically if we empty the cart
+                }
+            }
+
+            // Logic for opening the overlay
+            function openCartModal() {
+                const modal = document.getElementById('cartModal');
+                const cartList = document.getElementById('cartList');
+                const modalTotalSum = document.getElementById('modalTotalSum');
+
+                cartList.innerHTML = ''; // Reset list
+
+                const { totalItems, totalPrice } = getCartTotal();
+
+                if (totalItems === 0) {
+                    closeCartModal();
+                    return;
+                }
+
+                for (const [id, qty] of Object.entries(cart)) {
+                    if (qty > 0) {
+                        const product = allProducts.find(p => p.id == parseInt(id));
+                        if (product) {
+                            const sumPrice = product.price * qty;
+
+                            const itemDiv = document.createElement('div');
+                            itemDiv.className = 'cart-item';
+                            itemDiv.innerHTML = `
                             <div class="cart-item-info" style="max-width: 40%;">
                                 <span class="cart-item-name">${product.name}</span>
                                 <span class="cart-item-price">${formatPrice(product.price)}</span>
@@ -606,79 +608,52 @@
                             </div>
                             <div class="cart-item-total" style="font-size: 14px;">${formatPrice(sumPrice)}</div>
                         `;
-                        cartList.appendChild(itemDiv);
+                            cartList.appendChild(itemDiv);
+                        }
                     }
                 }
+
+                modalTotalSum.innerText = formatPrice(totalPrice);
+                modal.classList.add('active');
+                try { tg.MainButton.hide(); } catch (e) { /* ignore */ }
             }
 
-            modalTotalSum.innerText = formatPrice(totalPrice);
-            modal.classList.add('active');
-            try { tg.MainButton.hide(); } catch (e) { /* ignore */ }
-        }
-
-        function closeCartModal() {
-            const modal = document.getElementById('cartModal');
-            modal.classList.remove('active');
-            updateMainButton(); // Restore Main Button based on state
-        }
-
-        // MainButton click event maps directly to opening the cart overlay
-        try {
-            tg.MainButton.onClick(function () {
-                openCartModal();
-            });
-        } catch (e) {
-            console.warn('MainButton.onClick not available', e);
-        }
-
-        // The final "TASDIQLASH" button completes the purchase
-        window.submitFinalOrder = function () {
-
-            const items = [];
-            const { totalPrice } = getCartTotal();
-
-            for (const [id, qty] of Object.entries(cart)) {
-                if (qty > 0) {
-                    const product = allProducts.find(p => p.id == parseInt(id));
-                    if (product) {
-                        items.push({
-                            id: product.id,
-                            name: product.name,
-                            price: product.price,
-                            quantity: qty
-                        });
-                    }
-                }
+            function closeCartModal() {
+                const modal = document.getElementById('cartModal');
+                modal.classList.remove('active');
+                updateMainButton(); // Restore Main Button based on state
             }
 
-            // Send properly formatted order Data back to bot
-            const orderData = {
-                items: items,
-                totalPrice: totalPrice,
-                timestamp: new Date().toISOString()
-            };
-
+            // MainButton click event maps directly to opening the cart overlay
             try {
-                // Haptic feed completion
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.notificationOccurred('success');
-                }
-
-                // Ensure orderData is a valid JSON string
-                const payload = JSON.stringify(orderData);
-                tg.sendData(payload);
-
-                // After sending, close the webapp UI
-                try { tg.close(); } catch (e) { /* ignore if not available */ }
-
-            } catch (err) {
-                console.error("Error sending data to bot: ", err);
+                tg.MainButton.onClick(function () {
+                    openCartModal();
+                });
+            } catch (e) {
+                console.warn('MainButton.onClick not available', e);
             }
-        }
 
-        // Initialize
-        renderProducts();
-    </script>
+            // The final "TASDIQLASH" button completes the purchase
+            window.forceOrder = function () {
+                console.log("Button pressed!");
+                const testData = {
+                    status: "success",
+                    total: 15000000,
+                    user: "Mirzayev Jorabek"
+                };
+                try {
+                    // Ma'lumotni yuborish va oynani yopish
+                    Telegram.WebApp.sendData(JSON.stringify(testData));
+                    // Agar sendData kechiksa, majburan yopish
+                    setTimeout(() => { Telegram.WebApp.close(); }, 500);
+                } catch (err) {
+                    alert("JS Error: " + err.message);
+                }
+            }
+
+            // Initialize
+            renderProducts();
+        </script>
 </body>
 
 </html>

@@ -522,6 +522,12 @@
             }
 
             updateMainButton();
+
+            // Auto update cart modal if it's currently open
+            const modal = document.getElementById('cartModal');
+            if (modal.classList.contains('active')) {
+                openCartModal(); // simply re-render
+            }
         }
 
         function getCartTotal() {
@@ -575,6 +581,11 @@
 
             const { totalItems, totalPrice } = getCartTotal();
 
+            if (totalItems === 0) {
+                closeCartModal();
+                return;
+            }
+
             for (const [id, qty] of Object.entries(cart)) {
                 if (qty > 0) {
                     const product = allProducts.find(p => p.id == parseInt(id));
@@ -584,11 +595,16 @@
                         const itemDiv = document.createElement('div');
                         itemDiv.className = 'cart-item';
                         itemDiv.innerHTML = `
-                            <div class="cart-item-info">
+                            <div class="cart-item-info" style="max-width: 40%;">
                                 <span class="cart-item-name">${product.name}</span>
-                                <span class="cart-item-price">${qty} x ${formatPrice(product.price)}</span>
+                                <span class="cart-item-price">${formatPrice(product.price)}</span>
                             </div>
-                            <div class="cart-item-total">${formatPrice(sumPrice)}</div>
+                            <div class="controls" style="width: auto; background-color: transparent; gap: 8px;">
+                                <button class="btn-control" onclick="updateCart(${product.id}, -1)">-</button>
+                                <span class="quantity" id="modal-qty-${product.id}">${qty}</span>
+                                <button class="btn-control" onclick="updateCart(${product.id}, 1)">+</button>
+                            </div>
+                            <div class="cart-item-total" style="font-size: 14px;">${formatPrice(sumPrice)}</div>
                         `;
                         cartList.appendChild(itemDiv);
                     }
@@ -606,11 +622,10 @@
             updateMainButton(); // Restore Main Button based on state
         }
 
-        // MainButton click event maps directly to the final checkout
-        // Keep it simple and add debug logging/alerts so we can confirm the press
+        // MainButton click event maps directly to opening the cart overlay
         try {
             tg.MainButton.onClick(function () {
-                submitFinalOrder();
+                openCartModal();
             });
         } catch (e) {
             console.warn('MainButton.onClick not available', e);
@@ -639,7 +654,7 @@
             // Send properly formatted order Data back to bot
             const orderData = {
                 items: items,
-                total: totalPrice,
+                totalPrice: totalPrice,
                 timestamp: new Date().toISOString()
             };
 

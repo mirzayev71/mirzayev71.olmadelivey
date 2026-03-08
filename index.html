@@ -402,6 +402,7 @@
     <script>
         // Init Telegram WebApp
         const tg = window.Telegram.WebApp;
+        tg.ready(); // Called at the very beginning of the script
         tg.expand(); // Full screen
 
         tg.backgroundColor = "#ffffff";
@@ -528,12 +529,14 @@
         function updateMainButton() {
             const { totalItems, totalPrice } = getCartTotal();
 
-            if (totalItems > 0) {
-                tg.MainButton.setText(`SAVATCHANI KO'RISH (Summa: ${formatPrice(totalPrice)})`);
+            if (totalItems > 0 && totalPrice > 0) {
+                tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
                 tg.MainButton.color = '#0071e3';
                 tg.MainButton.textColor = '#ffffff';
+                tg.MainButton.enable(); // Make button clickable
                 if (!tg.MainButton.isVisible) tg.MainButton.show();
             } else {
+                tg.MainButton.disable(); // Disable if empty or zero price
                 if (tg.MainButton.isVisible) tg.MainButton.hide();
                 closeCartModal(); // Close automatically if we empty the cart
             }
@@ -580,9 +583,10 @@
             updateMainButton(); // Restore Main Button based on state
         }
 
-        // MainButton event triggers purely to open the CART overview
-        Telegram.WebApp.onEvent('mainButtonClicked', function () {
-            openCartModal();
+        // MainButton click event maps directly to the final checkout
+        tg.MainButton.onClick(function () {
+            // Trigger sendData via your existing properly formatted order payload:
+            submitFinalOrder();
         });
 
         // The final "TASDIQLASH" button completes the purchase
@@ -611,17 +615,21 @@
                 timestamp: new Date().toISOString()
             };
 
-            // Haptic feed completion
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.notificationOccurred('success');
+            try {
+                // Haptic feed completion
+                if (tg.HapticFeedback) {
+                    tg.HapticFeedback.notificationOccurred('success');
+                }
+                tg.sendData(JSON.stringify(orderData));
+                tg.close();
+            } catch (err) {
+                console.error("Error sending data to bot: ", err);
+                alert("Xatolik yuz berdi: " + err.message);
             }
-
-            tg.sendData(JSON.stringify(orderData));
         }
 
         // Initialize
         renderProducts();
-        tg.ready();
     </script>
 </body>
 

@@ -610,8 +610,6 @@
         // Keep it simple and add debug logging/alerts so we can confirm the press
         try {
             tg.MainButton.onClick(function () {
-                console.log('DEBUG: MainButton clicked');
-                alert('DEBUG: MainButton clicked');
                 submitFinalOrder();
             });
         } catch (e) {
@@ -620,8 +618,6 @@
 
         // The final "TASDIQLASH" button completes the purchase
         window.submitFinalOrder = function () {
-            console.log('DEBUG: submitFinalOrder invoked');
-            alert('DEBUG: submitFinalOrder invoked');
 
             const items = [];
             const { totalPrice } = getCartTotal();
@@ -648,7 +644,6 @@
             };
 
             try {
-                console.log('DEBUG: sending orderData to bot', orderData);
                 // Haptic feed completion
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.notificationOccurred('success');
@@ -663,7 +658,6 @@
 
             } catch (err) {
                 console.error("Error sending data to bot: ", err);
-                alert("Xatolik yuz berdi: " + (err && err.message ? err.message : err));
             }
         }
 

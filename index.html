@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -7,14 +8,15 @@
     <!-- Telegram WebApp Library -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* Modern Apple-style Design (Clean UI) */
+        /* Modern Apple-style Design (Clean UI) - Forced White Theme */
         :root {
-            --bg-color: var(--tg-theme-bg-color, #f5f5f7);
-            --text-color: var(--tg-theme-text-color, #1d1d1f);
-            --hint-color: var(--tg-theme-hint-color, #86868b);
-            --button-color: var(--tg-theme-button-color, #0071e3);
-            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
-            --card-bg-color: var(--tg-theme-secondary-bg-color, #ffffff);
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --hint-color: #888888;
+            --button-color: #0071e3;
+            --button-text-color: #ffffff;
+            --card-bg-color: #ffffff;
+            --border-color: #e5e5ea;
         }
 
         * {
@@ -30,7 +32,8 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             padding: 16px;
-            padding-bottom: 90px; /* Space for the Telegram MainButton */
+            padding-bottom: 90px;
+            /* Space for the Telegram MainButton */
             -webkit-font-smoothing: antialiased;
         }
 
@@ -53,7 +56,9 @@
             background-color: var(--card-bg-color);
             border-radius: 20px;
             padding: 16px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            /* Subtle shadow */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -84,6 +89,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            color: var(--text-color);
         }
 
         .product-price {
@@ -107,7 +113,7 @@
         .btn-control {
             background-color: #ffffff;
             color: var(--text-color);
-            border: none;
+            border: 1px solid var(--border-color);
             width: 32px;
             height: 32px;
             border-radius: 16px;
@@ -117,7 +123,7 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             transition: background-color 0.2s, transform 0.1s;
         }
 
@@ -131,13 +137,15 @@
             font-weight: 600;
             min-width: 24px;
             text-align: center;
+            color: var(--text-color);
         }
     </style>
 </head>
+
 <body>
 
     <h1>🍎 Olma Store</h1>
-    
+
     <div class="grid-container" id="productGrid">
         <!-- Maxsulotlar shu yerda JavaScript orqali generatsiya qilinadi -->
     </div>
@@ -146,6 +154,10 @@
         // Telegram WebApp ni initsializatsiya qilish
         const tg = window.Telegram.WebApp;
         tg.expand(); // Ilovani to'liq ekranga ochish
+
+        // Setup Telegram colors if needed, but we override background/text via CSS rules
+        tg.backgroundColor = "#ffffff";
+        tg.headerColor = "#ffffff";
 
         // Vaqtincha mahsulotlar ro'yxati (Apple uslubida tasvirlar bilan)
         const products = [
@@ -168,7 +180,7 @@
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = '';
-            
+
             products.forEach(p => {
                 const card = document.createElement('div');
                 card.className = 'product-card';
@@ -187,17 +199,17 @@
         }
 
         // Savatchani yangilash (+ va - tugmalari uchun)
-        window.updateCart = function(productId, change) {
+        window.updateCart = function (productId, change) {
             if (!cart[productId]) {
                 cart[productId] = 0;
             }
-            
+
             cart[productId] += change;
-            
+
             if (cart[productId] < 0) {
                 cart[productId] = 0;
             }
-            
+
             document.getElementById(`qty-${productId}`).innerText = cart[productId];
 
             // Haptic feedback (telefon titrashi)
@@ -223,15 +235,20 @@
 
             if (totalItems > 0) {
                 tg.MainButton.setText(`BUYURTMA BERISH (${formatPrice(totalPrice)})`);
-                tg.MainButton.color = tg.themeParams.button_color || '#0071e3';
-                if (!tg.MainButton.isVisible) tg.MainButton.show();
+                tg.MainButton.color = '#0071e3'; // Force Apple Blue
+                tg.MainButton.textColor = '#ffffff';
+                if (!tg.MainButton.isVisible) {
+                    tg.MainButton.show();
+                }
             } else {
-                tg.MainButton.hide();
+                if (tg.MainButton.isVisible) {
+                    tg.MainButton.hide();
+                }
             }
         }
 
         // "Buyurtma berish" tugmasi bosilganda JSON yuborish
-        Telegram.WebApp.onEvent('mainButtonClicked', function() {
+        Telegram.WebApp.onEvent('mainButtonClicked', function () {
             const finalOrder = [];
             for (const [id, qty] of Object.entries(cart)) {
                 if (qty > 0) {
@@ -244,16 +261,17 @@
                     });
                 }
             }
-            
+
             // Botga JSON formatda ma'lumot jo'natish
             tg.sendData(JSON.stringify(finalOrder));
         });
 
         // Boshlang'ich holat
         renderProducts();
-        
+
         // Ilova tayyor ekanini bildirish
         tg.ready();
     </script>
 </body>
+
 </html>

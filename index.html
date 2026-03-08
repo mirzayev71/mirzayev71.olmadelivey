@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#ffffff" />
     <title>Olma Store</title>
     <!-- Telegram WebApp Library -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -31,8 +32,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            background-color: var(--bg-color) !important;
+            color: var(--text-color) !important;
             padding: 16px;
             padding-bottom: 90px;
             /* Space for the Telegram MainButton */
@@ -399,14 +400,26 @@
         </div>
     </div>
 
+
     <script>
         // Init Telegram WebApp
         const tg = window.Telegram.WebApp;
-        tg.ready(); // Called at the very beginning of the script
-        tg.expand(); // Full screen
+        // Ensure ready() is called as early as possible
+        try {
+            tg.ready(); // Called at the very beginning of the script
+        } catch (e) {
+            console.warn('Telegram WebApp not available yet', e);
+        }
 
-        tg.backgroundColor = "#ffffff";
-        tg.headerColor = "#ffffff";
+        // Force white theme for WebApp chrome
+        try {
+            tg.backgroundColor = "#ffffff";
+            tg.headerColor = "#ffffff";
+        } catch (e) {
+            // ignore if API not ready
+        }
+
+        tg.expand(); // Full screen (best-effort)
 
         // Current UI State
         let currentCategory = 'Hammasi';
@@ -530,14 +543,24 @@
             const { totalItems, totalPrice } = getCartTotal();
 
             if (totalItems > 0 && totalPrice > 0) {
-                tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
-                tg.MainButton.color = '#0071e3';
-                tg.MainButton.textColor = '#ffffff';
-                tg.MainButton.enable(); // Make button clickable
-                if (!tg.MainButton.isVisible) tg.MainButton.show();
+                try {
+                    tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
+                    // Some WebApp SDKs allow color setters; use safe API if available
+                    if (tg.MainButton.setParams) {
+                        tg.MainButton.setParams({ color: '#0071e3', text_color: '#ffffff' });
+                    }
+                    tg.MainButton.enable(); // Make button clickable
+                    if (!tg.MainButton.isVisible) tg.MainButton.show();
+                } catch (e) {
+                    console.warn('Failed to update MainButton using SDK', e);
+                }
             } else {
-                tg.MainButton.disable(); // Disable if empty or zero price
-                if (tg.MainButton.isVisible) tg.MainButton.hide();
+                try {
+                    tg.MainButton.disable(); // Disable if empty or zero price
+                    if (tg.MainButton.isVisible) tg.MainButton.hide();
+                } catch (e) {
+                    // ignore
+                }
                 closeCartModal(); // Close automatically if we empty the cart
             }
         }
@@ -574,7 +597,7 @@
 
             modalTotalSum.innerText = formatPrice(totalPrice);
             modal.classList.add('active');
-            tg.MainButton.hide(); // Hide main button down below while modal is open
+            try { tg.MainButton.hide(); } catch (e) { /* ignore */ }
         }
 
         function closeCartModal() {
@@ -584,13 +607,22 @@
         }
 
         // MainButton click event maps directly to the final checkout
-        tg.MainButton.onClick(function () {
-            // Trigger sendData via your existing properly formatted order payload:
-            submitFinalOrder();
-        });
+        // Keep it simple and add debug logging/alerts so we can confirm the press
+        try {
+            tg.MainButton.onClick(function () {
+                console.log('DEBUG: MainButton clicked');
+                alert('DEBUG: MainButton clicked');
+                submitFinalOrder();
+            });
+        } catch (e) {
+            console.warn('MainButton.onClick not available', e);
+        }
 
         // The final "TASDIQLASH" button completes the purchase
         window.submitFinalOrder = function () {
+            console.log('DEBUG: submitFinalOrder invoked');
+            alert('DEBUG: submitFinalOrder invoked');
+
             const items = [];
             const { totalPrice } = getCartTotal();
 
@@ -616,15 +648,22 @@
             };
 
             try {
+                console.log('DEBUG: sending orderData to bot', orderData);
                 // Haptic feed completion
                 if (tg.HapticFeedback) {
                     tg.HapticFeedback.notificationOccurred('success');
                 }
-                tg.sendData(JSON.stringify(orderData));
-                tg.close();
+
+                // Ensure orderData is a valid JSON string
+                const payload = JSON.stringify(orderData);
+                tg.sendData(payload);
+
+                // After sending, close the webapp UI
+                try { tg.close(); } catch (e) { /* ignore if not available */ }
+
             } catch (err) {
                 console.error("Error sending data to bot: ", err);
-                alert("Xatolik yuz berdi: " + err.message);
+                alert("Xatolik yuz berdi: " + (err && err.message ? err.message : err));
             }
         }
 

@@ -1,16 +1,12 @@
 <!DOCTYPE html>
 <html lang="uz">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- MUST BE FIRST SCRIPT -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta name="theme-color" content="#ffffff" />
     <title>Olma Store</title>
-    <!-- Telegram WebApp Library -->
     <style>
-        /* Modern Apple-style Design (Clean UI) - Forced White Theme */
         :root {
             --bg-color: #ffffff;
             --text-color: #000000;
@@ -19,641 +15,107 @@
             --button-text-color: #ffffff;
             --card-bg-color: #ffffff;
             --border-color: #e5e5ea;
-            --active-category-bg: #000000;
-            --active-category-text: #ffffff;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: var(--bg-color) !important;
             color: var(--text-color) !important;
             padding: 16px;
             padding-bottom: 90px;
-            /* Space for the Telegram MainButton */
-            -webkit-font-smoothing: antialiased;
         }
-
-        /* Top Header */
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        /* Categories Bar (Horizontal Scroll) */
-        .categories-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding-bottom: 12px;
-            margin-bottom: 16px;
-            /* Hide scrollbar */
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .categories-container::-webkit-scrollbar {
-            display: none;
-        }
-
-        .category-chip {
-            padding: 8px 16px;
-            background-color: #f2f2f7;
-            color: var(--text-color);
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .category-chip.active {
-            background-color: var(--active-category-bg);
-            color: var(--active-category-text);
-        }
-
-        /* 18+ Warning Banner */
-        .warning-banner {
-            display: none;
-            background-color: #fff0f0;
-            color: #d93025;
-            padding: 10px 14px;
-            border-radius: 12px;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 16px;
-            align-items: center;
-            border: 1px solid #fce8e6;
-        }
-
-        .warning-banner.show {
-            display: flex;
-        }
-
-        /* Product Grid: 2 Columns */
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-        }
-
-        /* Product Card */
-        .product-card {
-            background-color: var(--card-bg-color);
-            border-radius: 16px;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .product-card:active {
-            transform: scale(0.96);
-        }
-
-        .product-image {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: contain;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            background-color: #f5f5f7;
-            padding: 8px;
-        }
-
-        .product-name {
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 4px;
-            text-align: center;
-            line-height: 1.2;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-color);
-            width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            line-clamp: 2;
-            -webkit-box-orient: vertical;
-        }
-
-        .product-price {
-            font-size: 13px;
-            color: var(--hint-color);
-            font-weight: 500;
-            margin-bottom: 12px;
-        }
-
-        /* +/- Controls */
-        .controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            background-color: #f2f2f7;
-            border-radius: 20px;
-            padding: 4px;
-        }
-
-        .btn-control {
-            background-color: #ffffff;
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            width: 28px;
-            height: 28px;
-            border-radius: 14px;
-            font-size: 18px;
-            font-weight: 400;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            transition: background-color 0.1s, transform 0.1s;
-        }
-
-        .btn-control:active {
-            background-color: #e5e5ea;
-            transform: scale(0.9);
-        }
-
-        .quantity {
-            font-size: 14px;
-            font-weight: 600;
-            min-width: 20px;
-            text-align: center;
-            color: var(--text-color);
-        }
-
-        /* MODAL / OVERLAY FOR CART */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background-color: #ffffff;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 24px 20px;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            transform: translateY(100%);
-            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .modal-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: #000000;
-        }
-
-        .modal-close {
-            background: #f2f2f7;
-            border: none;
-            width: 32px;
-            height: 32px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #000000;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .cart-list {
-            overflow-y: auto;
-            flex-grow: 1;
-            margin-bottom: 20px;
-            /* Hide scrollbar styling */
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-        .cart-list::-webkit-scrollbar {
-            display: none;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .cart-item-info {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            max-width: 65%;
-        }
-
-        .cart-item-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #000000;
-        }
-
-        .cart-item-price {
-            font-size: 14px;
-            color: var(--hint-color);
-        }
-
-        .cart-item-total {
-            font-size: 15px;
-            font-weight: 600;
-            color: #000000;
-        }
-
-        .modal-footer {
-            border-top: 1px solid var(--border-color);
-            padding-top: 16px;
-        }
-
-        .modal-total-wrapper {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            font-size: 18px;
-            font-weight: 700;
-            color: #000000;
-        }
-
-        .btn-confirm {
-            background-color: var(--button-color);
-            color: #ffffff;
-            border: none;
-            border-radius: 14px;
-            padding: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            border: none;
-            cursor: pointer;
-        }
-
-        .btn-confirm:active {
-            opacity: 0.8;
-            transform: scale(0.98);
-        }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        h1 { font-size: 24px; font-weight: 700; }
+        .categories-container { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 12px; scrollbar-width: none; }
+        .category-chip { padding: 8px 16px; background-color: #f2f2f7; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .category-chip.active { background-color: #000; color: #fff; }
+        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .product-card { background: var(--card-bg-color); border-radius: 16px; padding: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; }
+        .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; margin-bottom: 10px; }
+        .product-name { font-size: 13px; font-weight: 600; text-align: center; height: 32px; overflow: hidden; }
+        .product-price { font-size: 13px; color: var(--hint-color); margin-bottom: 12px; }
+        .controls { display: flex; align-items: center; justify-content: space-between; width: 100%; background: #f2f2f7; border-radius: 20px; padding: 4px; }
+        .btn-control { background: #fff; border: 1px solid var(--border-color); width: 28px; height: 28px; border-radius: 14px; cursor: pointer; }
+        
+        /* Modal Style */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
+        .modal-overlay.active { display: flex; flex-direction: column; justify-content: flex-end; }
+        .modal-content { background: #fff; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px 20px; max-height: 80vh; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .btn-confirm { background: var(--button-color); color: #fff; border: none; border-radius: 14px; padding: 16px; width: 100%; font-weight: 600; margin-top: 15px; }
     </style>
 </head>
-
 <body>
-
-    <div class="header">
-        <h1>🍎 Olma Store</h1>
-    </div>
-
-    <!-- Categories -->
+    <div class="header"><h1>🍎 Olma Store</h1></div>
     <div class="categories-container" id="categoryBar">
         <div class="category-chip active" onclick="filterCategory('Hammasi')">Hammasi</div>
         <div class="category-chip" onclick="filterCategory('Oziq-ovqat')">Oziq-ovqat</div>
         <div class="category-chip" onclick="filterCategory('Ichimliklar')">Ichimliklar</div>
-        <div class="category-chip" onclick="filterCategory('Alkogol')">Alkogol</div>
-        <div class="category-chip" onclick="filterCategory('Tamaki')">Tamaki</div>
     </div>
+    <div class="grid-container" id="productGrid"></div>
 
-    <!-- 18+ Warning -->
-    <div class="warning-banner" id="ageWarning">
-        ⚠️ Diqqat: Bu bo'limdagi mahsulotlar faqat 18 yoshga to'lganlar uchun (18+ mahsulotlar).
-    </div>
-
-    <!-- Products Grid -->
-    <div class="grid-container" id="productGrid">
-        <!-- Products generated by JS -->
-    </div>
-
-    <!-- Details Overlay Modal -->
     <div class="modal-overlay" id="cartModal">
         <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">Sizning buyurtmangiz</div>
-                <button class="modal-close" onclick="closeCartModal()">✕</button>
-            </div>
-
-            <div class="cart-list" id="cartList">
-                <!-- Cart items populated by JS -->
-            </div>
-
-            <div class="modal-footer">
-                <div class="modal-total-wrapper">
-                    <span>Jami:</span>
-                    <span id="modalTotalSum">0 so'm</span>
-                </div>
-                <!-- FORCE ORDER BUTTON -->
-                <button class="btn-confirm" onclick="forceOrder()">BUYURTMANI TASDIQLASH</button>
-            </div>
+            <h2 style="margin-bottom: 15px;">Sizning buyurtmangiz</h2>
+            <div id="cartList"></div>
+            <div style="margin-top: 15px; font-weight: bold; font-size: 18px;">Jami: <span id="modalTotalSum">0</span></div>
+            <button class="btn-confirm" onclick="finalSubmitOrder()">BUYURTMANI TASDIQLASH</button>
+            <button onclick="closeCartModal()" style="background: none; border: none; color: #888; width: 100%; margin-top: 10px;">Yopish</button>
         </div>
+    </div>
 
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
 
-        <script>
-            // Init Telegram WebApp
-            const tg = window.Telegram.WebApp;
-            // Ensure ready() is called as early as possible
-            try {
-                tg.ready(); // Called at the very beginning of the script
-                tg.expand();
-            } catch (e) {
-                console.warn('Telegram WebApp not available yet', e);
-            }
+        let cart = {}; 
+        const allProducts = [
+            { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Elektronika" },
+            { id: 2, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar" },
+            { id: 3, name: "Qora Non", price: 4000, category: "Oziq-ovqat" }
+        ];
 
-            // Force white theme for WebApp chrome
-            try {
-                tg.backgroundColor = "#ffffff";
-                tg.headerColor = "#ffffff";
-            } catch (e) {
-                // ignore if API not ready
-            }
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+            allProducts.forEach(p => {
+                const qty = cart[p.id] || 0;
+                grid.innerHTML += `
+                    <div class="product-card">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">${p.price.toLocaleString()} so'm</div>
+                        <div class="controls">
+                            <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
+                            <span>${qty}</span>
+                            <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
+                        </div>
+                    </div>`;
+            });
+        }
 
-            tg.expand(); // Full screen (best-effort)
-
-            // Current UI State
-            let currentCategory = 'Hammasi';
-            let cart = {}; // { productId: quantity }
-
-            // MOCK DATA (Categories aligned with user's backend DB)
-            const allProducts = [
-                { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Telefon", img: "https://store.storeimages.cdn-apple.com/4982/as-images.apple.com/is/iphone-15-pro-finish-select-202309-6-7inch-naturaltitanium?wid=2560&hei=1440&fmt=p-jpg&qlt=80&.v=1692845702708" },
-                { id: 2, name: "Qora Non", price: 4000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Non" },
-                { id: 3, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Cola" },
-                { id: 4, name: "Fanta 1.5L", price: 12000, category: "Ichimliklar", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Fanta" },
-                { id: 5, name: "Qurbonobod Pivo", price: 25000, category: "Alkogol", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Pivo" },
-                { id: 6, name: "Marlboro Gold", price: 30000, category: "Tamaki", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Marlboro" },
-                { id: 7, name: "Snickers", price: 9000, category: "Oziq-ovqat", img: "https://via.placeholder.com/150/f5f5f7/000000?text=Snickers" }
-            ];
-
-            function formatPrice(price) {
-                return price.toLocaleString('uz-UZ') + " so'm";
-            }
-
-            function filterCategory(categoryName) {
-                currentCategory = categoryName;
-
-                // Highlight active chip
-                const chips = document.querySelectorAll('.category-chip');
-                chips.forEach(chip => {
-                    if (chip.innerText === categoryName) {
-                        chip.classList.add('active');
-                        // Scroll active to view
-                        chip.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-                    } else {
-                        chip.classList.remove('active');
-                    }
-                });
-
-                // Show config for Disclaimer
-                const warningBanner = document.getElementById('ageWarning');
-                if (categoryName === 'Alkogol' || categoryName === 'Tamaki') {
-                    warningBanner.classList.add('show');
-                } else {
-                    warningBanner.classList.remove('show');
-                }
-
-                // Re-render
-                renderProducts();
-            }
-
-            function renderProducts() {
-                const grid = document.getElementById('productGrid');
-                grid.innerHTML = '';
-
-                // Filter
-                const displayProducts = currentCategory === 'Hammasi'
-                    ? allProducts
-                    : allProducts.filter(p => p.category === currentCategory);
-
-                if (displayProducts.length === 0) {
-                    grid.innerHTML = '<div style="grid-column: span 2; text-align: center; margin-top: 40px; color: var(--hint-color);">Bu turkumda mahsulot topilmadi.</div>';
-                    return;
-                }
-
-                displayProducts.forEach(p => {
-                    const qty = cart[p.id] || 0;
-                    const card = document.createElement('div');
-                    card.className = 'product-card';
-                    card.innerHTML = `
-                    <img src="${p.img}" alt="${p.name}" class="product-image" onerror="this.src='https://via.placeholder.com/150/f5f5f7/888888?text=Rasm'">
-                    <div class="product-name">${p.name}</div>
-                    <div class="product-price">${formatPrice(p.price)}</div>
-                    <div class="controls">
-                        <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
-                        <span class="quantity" id="qty-${p.id}">${qty}</span>
-                        <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
-                    </div>
-                `;
-                    grid.appendChild(card);
-                });
-            }
-
-            window.updateCart = function (productId, change) {
-                if (!cart[productId]) {
-                    cart[productId] = 0;
-                }
-
-                cart[productId] += change;
-
-                if (cart[productId] < 0) {
-                    cart[productId] = 0;
-                }
-
-                // Update UI Counters
-                const qtyElement = document.getElementById(`qty-${productId}`);
-                if (qtyElement) {
-                    qtyElement.innerText = cart[productId];
-                }
-
-                // Haptic feed
-                if (tg.HapticFeedback) {
-                    tg.HapticFeedback.impactOccurred('light');
-                }
-
-                updateMainButton();
-
-                // Auto update cart modal if it's currently open
-                const modal = document.getElementById('cartModal');
-                if (modal.classList.contains('active')) {
-                    openCartModal(); // simply re-render
-                }
-            }
-
-            function getCartTotal() {
-                let totalItems = 0;
-                let totalPrice = 0;
-
-                for (const [id, qty] of Object.entries(cart)) {
-                    if (qty > 0) {
-                        totalItems += qty;
-                        const product = allProducts.find(p => p.id == parseInt(id));
-                        if (product) totalPrice += product.price * qty;
-                    }
-                }
-
-                return { totalItems, totalPrice };
-            }
-
-            function updateMainButton() {
-                const { totalItems, totalPrice } = getCartTotal();
-
-                if (totalItems > 0 && totalPrice > 0) {
-                    try {
-                        tg.MainButton.setText(`TASDIQLASH (Summa: ${formatPrice(totalPrice)})`);
-                        // Some WebApp SDKs allow color setters; use safe API if available
-                        if (tg.MainButton.setParams) {
-                            tg.MainButton.setParams({ color: '#0071e3', text_color: '#ffffff' });
-                        }
-                        tg.MainButton.enable(); // Make button clickable
-                        if (!tg.MainButton.isVisible) tg.MainButton.show();
-                    } catch (e) {
-                        console.warn('Failed to update MainButton using SDK', e);
-                    }
-                } else {
-                    try {
-                        tg.MainButton.disable(); // Disable if empty or zero price
-                        if (tg.MainButton.isVisible) tg.MainButton.hide();
-                    } catch (e) {
-                        // ignore
-                    }
-                    closeCartModal(); // Close automatically if we empty the cart
-                }
-            }
-
-            // Logic for opening the overlay
-            function openCartModal() {
-                const modal = document.getElementById('cartModal');
-                const cartList = document.getElementById('cartList');
-                const modalTotalSum = document.getElementById('modalTotalSum');
-
-                cartList.innerHTML = ''; // Reset list
-
-                const { totalItems, totalPrice } = getCartTotal();
-
-                if (totalItems === 0) {
-                    closeCartModal();
-                    return;
-                }
-
-                for (const [id, qty] of Object.entries(cart)) {
-                    if (qty > 0) {
-                        const product = allProducts.find(p => p.id == parseInt(id));
-                        if (product) {
-                            const sumPrice = product.price * qty;
-
-                            const itemDiv = document.createElement('div');
-                            itemDiv.className = 'cart-item';
-                            itemDiv.innerHTML = `
-                            <div class="cart-item-info" style="max-width: 40%;">
-                                <span class="cart-item-name">${product.name}</span>
-                                <span class="cart-item-price">${formatPrice(product.price)}</span>
-                            </div>
-                            <div class="controls" style="width: auto; background-color: transparent; gap: 8px;">
-                                <button class="btn-control" onclick="updateCart(${product.id}, -1)">-</button>
-                                <span class="quantity" id="modal-qty-${product.id}">${qty}</span>
-                                <button class="btn-control" onclick="updateCart(${product.id}, 1)">+</button>
-                            </div>
-                            <div class="cart-item-total" style="font-size: 14px;">${formatPrice(sumPrice)}</div>
-                        `;
-                            cartList.appendChild(itemDiv);
-                        }
-                    }
-                }
-
-                modalTotalSum.innerText = formatPrice(totalPrice);
-                modal.classList.add('active');
-                try { tg.MainButton.hide(); } catch (e) { /* ignore */ }
-            }
-
-            function closeCartModal() {
-                const modal = document.getElementById('cartModal');
-                modal.classList.remove('active');
-                updateMainButton(); // Restore Main Button based on state
-            }
-
-            // MainButton click event maps directly to opening the cart overlay
-            try {
-                tg.MainButton.onClick(function () {
-                    openCartModal();
-                });
-            } catch (e) {
-                console.warn('MainButton.onClick not available', e);
-            }
-
-            // The final "TASDIQLASH" button completes the purchase
-            window.forceOrder = function () {
-                console.log("Button pressed!");
-                const testData = {
-                    status: "success",
-                    total: 15000000,
-                    user: "Mirzayev Jorabek"
-                };
-                try {
-                    // Ma'lumotni yuborish va oynani yopish
-                    Telegram.WebApp.sendData(JSON.stringify(testData));
-                    // Agar sendData kechiksa, majburan yopish
-                    setTimeout(() => { Telegram.WebApp.close(); }, 500);
-                } catch (err) {
-                    alert("JS Error: " + err.message);
-                }
-            }
-
-            // Initialize
+        window.updateCart = function(id, change) {
+            cart[id] = (cart[id] || 0) + change;
+            if (cart[id] < 0) cart[id] = 0;
             renderProducts();
-        </script>
-</body>
+            updateMainButton();
+        };
 
-</html>
+        function updateMainButton() {
+            let total = 0;
+            Object.keys(cart).forEach(id => {
+                const p = allProducts.find(x => x.id == id);
+                total += p.price * cart[id];
+            });
+
+            if (total > 0) {
+                tg.MainButton.setText(`SAVATCHANI KO'RISH (${total.toLocaleString()} so'm)`);
+                tg.MainButton.show();
+                tg.MainButton.onClick(() => openCartModal());
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        function openCartModal() {
+            const modal = document.

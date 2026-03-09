@@ -337,6 +337,11 @@
 
             if (items.length === 0) return;
 
+            if (totalPrice < 80000) {
+                tg.showAlert(`Uzr, bizda minimal buyurtma miqdori 80,000 so'm. Buyurtmani davom ettirish uchun yana ${(80000 - totalPrice).toLocaleString()} so'mlik mahsulot qo'shishingiz kerak.`);
+                return;
+            }
+
             const orderData = {
                 items: items,
                 totalPrice: totalPrice

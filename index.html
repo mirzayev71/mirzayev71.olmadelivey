@@ -253,14 +253,25 @@
         };
 
         window.updateCart = function (id, change) {
+            if (tg.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('light');
+            }
             cart[id] = (cart[id] || 0) + change;
             if (cart[id] < 0) cart[id] = 0;
             renderProducts();
-            updateMainButton();
+
+            const modal = document.getElementById('cartModal');
+            if (modal.classList.contains('active')) {
+                renderCartModalContent();
+                // We update the MainButton but keep it hidden if the modal is active
+                updateMainButton();
+                tg.MainButton.hide();
+            } else {
+                updateMainButton();
+            }
         };
 
-        function openCartModal() {
-            const modal = document.getElementById('cartModal');
+        function renderCartModalContent() {
             const cartList = document.getElementById('cartList');
             const modalTotalSum = document.getElementById('modalTotalSum');
 
@@ -274,9 +285,16 @@
                     if (p) {
                         total += p.price * qty;
                         cartList.innerHTML += `
-                            <div class="cart-item">
-                                <span>${p.name} (x${qty})</span>
-                                <span>${(p.price * qty).toLocaleString()} so'm</span>
+                            <div class="cart-item" style="align-items: center;">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600;">${p.name}</div>
+                                    <div style="color: #888; font-size: 13px;">${(p.price * qty).toLocaleString()} so'm</div>
+                                </div>
+                                <div class="controls" style="width: auto; gap: 10px; margin-left: 10px;">
+                                    <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
+                                    <span>${qty}</span>
+                                    <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
+                                </div>
                             </div>
                         `;
                     }
@@ -284,6 +302,15 @@
             });
 
             modalTotalSum.innerText = total.toLocaleString();
+
+            if (total === 0) {
+                closeCartModal();
+            }
+        }
+
+        function openCartModal() {
+            renderCartModalContent();
+            const modal = document.getElementById('cartModal');
             modal.classList.add('active');
             tg.MainButton.hide();
         }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="uz">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -16,7 +17,14 @@
             --card-bg-color: #ffffff;
             --border-color: #e5e5ea;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
             background-color: var(--bg-color) !important;
@@ -24,33 +32,160 @@
             padding: 16px;
             padding-bottom: 90px;
         }
-        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
-        h1 { font-size: 24px; font-weight: 700; }
-        .categories-container { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 12px; scrollbar-width: none; }
-        .category-chip { padding: 8px 16px; background-color: #f2f2f7; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; }
-        .category-chip.active { background-color: #000; color: #fff; }
-        .grid-container { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .product-card { background: var(--card-bg-color); border-radius: 16px; padding: 12px; border: 1px solid var(--border-color); display: flex; flex-direction: column; align-items: center; }
-        .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; margin-bottom: 10px; }
-        .product-name { font-size: 13px; font-weight: 600; text-align: center; height: 32px; overflow: hidden; }
-        .product-price { font-size: 13px; color: var(--hint-color); margin-bottom: 12px; }
-        .controls { display: flex; align-items: center; justify-content: space-between; width: 100%; background: #f2f2f7; border-radius: 20px; padding: 4px; }
-        .btn-control { background: #fff; border: 1px solid var(--border-color); width: 28px; height: 28px; border-radius: 14px; cursor: pointer; }
-        
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .categories-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 12px;
+            scrollbar-width: none;
+        }
+
+        .category-chip {
+            padding: 8px 16px;
+            background-color: #f2f2f7;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .category-chip.active {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .product-card {
+            background: var(--card-bg-color);
+            border-radius: 16px;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .product-image {
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: contain;
+            margin-bottom: 10px;
+        }
+
+        .product-name {
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            height: 32px;
+            overflow: hidden;
+            margin-bottom: 5px;
+        }
+
+        .product-price {
+            font-size: 13px;
+            color: var(--hint-color);
+            margin-bottom: 12px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            background: #f2f2f7;
+            border-radius: 20px;
+            padding: 4px;
+        }
+
+        .btn-control {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            width: 28px;
+            height: 28px;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
         /* Modal Style */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 1000; }
-        .modal-overlay.active { display: flex; flex-direction: column; justify-content: flex-end; }
-        .modal-content { background: #fff; border-top-left-radius: 24px; border-top-right-radius: 24px; padding: 24px 20px; max-height: 80vh; overflow-y: auto; }
-        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .btn-confirm { background: var(--button-color); color: #fff; border: none; border-radius: 14px; padding: 16px; width: 100%; font-weight: 600; margin-top: 15px; }
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .modal-content {
+            background: #fff;
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .btn-confirm {
+            background: var(--button-color);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 16px;
+            width: 100%;
+            font-weight: 600;
+            margin-top: 15px;
+            cursor: pointer;
+        }
     </style>
 </head>
+
 <body>
-    <div class="header"><h1>🍎 Olma Store</h1></div>
+    <div class="header">
+        <h1>🍎 Olma Store</h1>
+    </div>
     <div class="categories-container" id="categoryBar">
         <div class="category-chip active" onclick="filterCategory('Hammasi')">Hammasi</div>
         <div class="category-chip" onclick="filterCategory('Oziq-ovqat')">Oziq-ovqat</div>
         <div class="category-chip" onclick="filterCategory('Ichimliklar')">Ichimliklar</div>
+        <div class="category-chip" onclick="filterCategory('Elektronika')">Elektronika</div>
     </div>
     <div class="grid-container" id="productGrid"></div>
 
@@ -58,9 +193,12 @@
         <div class="modal-content">
             <h2 style="margin-bottom: 15px;">Sizning buyurtmangiz</h2>
             <div id="cartList"></div>
-            <div style="margin-top: 15px; font-weight: bold; font-size: 18px;">Jami: <span id="modalTotalSum">0</span></div>
+            <div style="margin-top: 15px; font-weight: bold; font-size: 18px;">Jami: <span id="modalTotalSum">0</span>
+                so'm
+            </div>
             <button class="btn-confirm" onclick="finalSubmitOrder()">BUYURTMANI TASDIQLASH</button>
-            <button onclick="closeCartModal()" style="background: none; border: none; color: #888; width: 100%; margin-top: 10px;">Yopish</button>
+            <button onclick="closeCartModal()"
+                style="background: none; border: none; color: #888; width: 100%; margin-top: 10px; padding: 10px; cursor: pointer;">Yopish</button>
         </div>
     </div>
 
@@ -69,17 +207,25 @@
         tg.ready();
         tg.expand();
 
-        let cart = {}; 
+        let cart = {};
         const allProducts = [
             { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Elektronika" },
             { id: 2, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar" },
             { id: 3, name: "Qora Non", price: 4000, category: "Oziq-ovqat" }
         ];
 
+        let currentCategory = 'Hammasi';
+        let isMainButtonEventAdded = false;
+
         function renderProducts() {
             const grid = document.getElementById('productGrid');
             grid.innerHTML = '';
-            allProducts.forEach(p => {
+
+            const filteredProducts = currentCategory === 'Hammasi'
+                ? allProducts
+                : allProducts.filter(p => p.category === currentCategory);
+
+            filteredProducts.forEach(p => {
                 const qty = cart[p.id] || 0;
                 grid.innerHTML += `
                     <div class="product-card">
@@ -94,28 +240,111 @@
             });
         }
 
-        window.updateCart = function(id, change) {
+        window.filterCategory = function (category) {
+            currentCategory = category;
+            document.querySelectorAll('.category-chip').forEach(chip => {
+                if (chip.innerText.trim() === category) {
+                    chip.classList.add('active');
+                } else {
+                    chip.classList.remove('active');
+                }
+            });
+            renderProducts();
+        };
+
+        window.updateCart = function (id, change) {
             cart[id] = (cart[id] || 0) + change;
             if (cart[id] < 0) cart[id] = 0;
             renderProducts();
             updateMainButton();
         };
 
+        function openCartModal() {
+            const modal = document.getElementById('cartModal');
+            const cartList = document.getElementById('cartList');
+            const modalTotalSum = document.getElementById('modalTotalSum');
+
+            cartList.innerHTML = '';
+            let total = 0;
+
+            Object.keys(cart).forEach(id => {
+                const qty = cart[id];
+                if (qty > 0) {
+                    const p = allProducts.find(x => x.id == id);
+                    if (p) {
+                        total += p.price * qty;
+                        cartList.innerHTML += `
+                            <div class="cart-item">
+                                <span>${p.name} (x${qty})</span>
+                                <span>${(p.price * qty).toLocaleString()} so'm</span>
+                            </div>
+                        `;
+                    }
+                }
+            });
+
+            modalTotalSum.innerText = total.toLocaleString();
+            modal.classList.add('active');
+            tg.MainButton.hide();
+        }
+
+        window.closeCartModal = function () {
+            document.getElementById('cartModal').classList.remove('active');
+            updateMainButton();
+        };
+
+        window.finalSubmitOrder = function () {
+            const items = [];
+            let totalPrice = 0;
+
+            Object.keys(cart).forEach(id => {
+                const qty = cart[id];
+                if (qty > 0) {
+                    const p = allProducts.find(x => x.id == id);
+                    if (p) {
+                        items.push({ name: p.name, quantity: qty });
+                        totalPrice += p.price * qty;
+                    }
+                }
+            });
+
+            if (items.length === 0) return;
+
+            const orderData = {
+                items: items,
+                totalPrice: totalPrice
+            };
+
+            tg.sendData(JSON.stringify(orderData));
+        };
+
         function updateMainButton() {
             let total = 0;
             Object.keys(cart).forEach(id => {
                 const p = allProducts.find(x => x.id == id);
-                total += p.price * cart[id];
+                if (p) {
+                    total += p.price * cart[id];
+                }
             });
 
             if (total > 0) {
                 tg.MainButton.setText(`SAVATCHANI KO'RISH (${total.toLocaleString()} so'm)`);
                 tg.MainButton.show();
-                tg.MainButton.onClick(() => openCartModal());
+                if (!isMainButtonEventAdded) {
+                    tg.MainButton.onClick(openCartModal);
+                    isMainButtonEventAdded = true;
+                }
             } else {
                 tg.MainButton.hide();
+                if (isMainButtonEventAdded) {
+                    tg.MainButton.offClick(openCartModal);
+                    isMainButtonEventAdded = false;
+                }
             }
         }
 
-        function openCartModal() {
-            const modal = document.
+        renderProducts();
+    </script>
+</body>
+
+</html>

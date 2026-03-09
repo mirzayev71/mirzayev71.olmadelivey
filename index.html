@@ -208,14 +208,41 @@
         tg.expand();
 
         let cart = {};
-        const allProducts = [
-            { id: 1, name: "IPhone 15 Pro Max", price: 15000000, category: "Elektronika" },
-            { id: 2, name: "Coca Cola 1.5L", price: 12000, category: "Ichimliklar" },
-            { id: 3, name: "Qora Non", price: 4000, category: "Oziq-ovqat" }
-        ];
-
+        let allProducts = [];
         let currentCategory = 'Hammasi';
         let isMainButtonEventAdded = false;
+
+        async function initApp() {
+            try {
+                // Determine API base url if not using relative paths (e.g. from Github pages)
+                // For now, assume relative works if hosted on the same server
+                const apiUrl = window.location.hostname.includes('github.io')
+                    ? 'http://localhost:8080/admin/products' // Fallback for dev
+                    : '/admin/products';
+
+                const res = await fetch(apiUrl);
+                if (res.ok) {
+                    allProducts = await res.json();
+                    renderCategoryTabs();
+                    renderProducts();
+                } else {
+                    console.error("Xatolik", res.status);
+                    tg.showAlert("Mahsulotlarni yuklashda xatolik yuz berdi.");
+                }
+            } catch (e) {
+                console.error("Tarmoq xatosi", e);
+            }
+        }
+
+        function renderCategoryTabs() {
+            const categories = ['Hammasi', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
+            const bar = document.getElementById('categoryBar');
+            bar.innerHTML = categories.map(c => `
+                <div class="category-chip ${c === currentCategory ? 'active' : ''}" onclick="filterCategory('${c}')">
+                    ${c}
+                </div>
+            `).join('');
+        }
 
         function renderProducts() {
             const grid = document.getElementById('productGrid');
@@ -230,7 +257,7 @@
                 grid.innerHTML += `
                     <div class="product-card">
                         <div class="product-name">${p.name}</div>
-                        <div class="product-price">${p.price.toLocaleString()} so'm</div>
+                        <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
                         <div class="controls">
                             <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
                             <span>${qty}</span>
@@ -242,13 +269,7 @@
 
         window.filterCategory = function (category) {
             currentCategory = category;
-            document.querySelectorAll('.category-chip').forEach(chip => {
-                if (chip.innerText.trim() === category) {
-                    chip.classList.add('active');
-                } else {
-                    chip.classList.remove('active');
-                }
-            });
+            renderCategoryTabs();
             renderProducts();
         };
 
@@ -329,7 +350,7 @@
                 if (qty > 0) {
                     const p = allProducts.find(x => x.id == id);
                     if (p) {
-                        items.push({ name: p.name, quantity: qty });
+                        items.push({ id: p.id, name: p.name, quantity: qty }); // Add id here
                         totalPrice += p.price * qty;
                     }
                 }
@@ -344,7 +365,8 @@
 
             const orderData = {
                 items: items,
-                totalPrice: totalPrice
+                totalPrice: totalPrice,
+                timestamp: new Date().toISOString()
             };
 
             tg.sendData(JSON.stringify(orderData));
@@ -375,7 +397,7 @@
             }
         }
 
-        renderProducts();
+        initApp();
     </script>
 </body>
 

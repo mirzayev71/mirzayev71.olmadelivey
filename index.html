@@ -214,8 +214,8 @@
                 // Determine API base url if not using relative paths (e.g. from Github pages)
                 // For now, assume relative works if hosted on the same server
                 const apiUrl = window.location.hostname.includes('github.io')
-                    ? 'http://localhost:8080/admin/products?activeOnly=true' // Fallback for dev
-                    : '/admin/products?activeOnly=true';
+                    ? 'http://localhost:8080/api/products?activeOnly=true' // Fallback for dev
+                    : '/api/products?activeOnly=true';
 
                 const res = await fetch(apiUrl);
                 if (res.ok) {

@@ -273,14 +273,27 @@
 
                 grouped[cat].forEach(p => {
                     const qty = cart[p.id] || 0;
-                    grid.innerHTML += `
-                        <div class="product-card">
-                            <div class="product-name">${p.name}</div>
-                            <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
+                    
+                    // Button or Controls based on qty
+                    let controlsHtml = '';
+                    if (qty === 0) {
+                        controlsHtml = `<button class="btn-confirm" style="margin-top:0; padding: 8px; width: 100%; font-size: 13px; border-radius: 8px;" onclick="updateCart(${p.id}, 1)">Savatga qo'shish</button>`;
+                    } else {
+                        controlsHtml = `
                             <div class="controls">
                                 <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
                                 <span>${qty}</span>
                                 <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
+                            </div>`;
+                    }
+
+                    grid.innerHTML += `
+                        <div class="product-card">
+                            <img src="https://via.placeholder.com/150?text=Olma+Store" class="product-image" alt="Product">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
+                            <div style="width: 100%; height: 36px; display: flex; align-items: center; justify-content: center;">
+                                ${controlsHtml}
                             </div>
                         </div>`;
                 });

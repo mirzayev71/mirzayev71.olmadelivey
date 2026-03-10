@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="uz">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <meta name="theme-color" content="#ffffff" />
     <title>Olma Store</title>
     <style>
         :root {
@@ -13,427 +11,71 @@
             --text-color: #000000;
             --hint-color: #888888;
             --button-color: #0071e3;
-            --button-text-color: #ffffff;
             --card-bg-color: #ffffff;
             --border-color: #e5e5ea;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg-color) !important;
-            color: var(--text-color) !important;
-            padding: 16px;
-            padding-bottom: 90px;
+            font-family: -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 16px; padding-bottom: 100px;
         }
 
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-
-        h1 {
-            font-size: 24px;
-            font-weight: 700;
-        }
-
+        .header { margin-bottom: 20px; text-align: center; }
+        
         .categories-container {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding-bottom: 12px;
-            scrollbar-width: none;
+            display: flex; overflow-x: auto; gap: 10px;
+            padding-bottom: 15px; scrollbar-width: none;
         }
 
         .category-chip {
-            padding: 8px 16px;
-            background-color: #f2f2f7;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            white-space: nowrap;
+            padding: 8px 16px; background: #f2f2f7; border-radius: 20px;
+            font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
         }
 
-        .category-chip.active {
-            background-color: #000;
-            color: #fff;
-        }
+        .category-chip.active { background: #000; color: #fff; }
 
-        .grid-container {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+        .product-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
         }
 
         .product-card {
-            background: var(--card-bg-color);
-            border-radius: 16px;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            background: var(--card-bg-color); border-radius: 16px;
+            padding: 12px; border: 1px solid var(--border-color);
+            display: flex; flex-direction: column; align-items: center;
         }
 
-        .product-image {
-            width: 100%;
-            aspect-ratio: 1;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
+        .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; margin-bottom: 8px; }
+        .product-name { font-size: 14px; font-weight: 600; text-align: center; height: 40px; overflow: hidden; }
+        .product-price { color: var(--hint-color); font-size: 13px; margin: 8px 0; }
 
-        .product-name {
-            font-size: 13px;
-            font-weight: 600;
-            text-align: center;
-            height: 32px;
-            overflow: hidden;
-            margin-bottom: 5px;
-        }
-
-        .product-price {
-            font-size: 13px;
-            color: var(--hint-color);
-            margin-bottom: 12px;
+        .btn-add {
+            background: var(--button-color); color: #fff; border: none;
+            width: 100%; padding: 8px; border-radius: 10px; font-weight: 600;
         }
 
         .controls {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            background: #f2f2f7;
-            border-radius: 20px;
-            padding: 4px;
+            display: flex; align-items: center; justify-content: space-between;
+            width: 100%; background: #f2f2f7; border-radius: 10px; padding: 4px;
         }
 
-        .btn-control {
-            background: #fff;
-            border: 1px solid var(--border-color);
-            width: 28px;
-            height: 28px;
-            border-radius: 14px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
+        .btn-ctrl {
+            background: #fff; border: 1px solid #ddd; width: 30px; height: 30px;
+            border-radius: 50%; font-weight: bold; cursor: pointer;
         }
 
-        /* Modal Style */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            z-index: 1000;
+        /* Modal */
+        .modal {
+            position: fixed; bottom: -100%; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); transition: 0.3s; z-index: 1000;
         }
-
-        .modal-overlay.active {
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-        }
-
+        .modal.active { bottom: 0; }
         .modal-content {
-            background: #fff;
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 24px 20px;
-            max-height: 80vh;
-            overflow-y: auto;
+            position: absolute; bottom: 0; background: #fff; width: 100%;
+            border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box;
         }
 
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-
-        .btn-confirm {
-            background: var(--button-color);
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            padding: 16px;
-            width: 100%;
-            font-weight: 600;
-            margin-top: 15px;
-            cursor: pointer;
-        }
+        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
     </style>
 </head>
-
 <body>
-    <div class="header">
-        <h1>🍎 Olma Store</h1>
-    </div>
-    <div class="categories-container" id="categoryBar">
-        <!-- JS fills this -->
-    </div>
-    <div id="productGrid"></div>
-
-    <div class="modal-overlay" id="cartModal">
-        <div class="modal-content">
-            <h2 style="margin-bottom: 15px;">Sizning buyurtmangiz</h2>
-            <div id="cartList"></div>
-            <div style="margin-top: 15px; font-weight: bold; font-size: 18px;">Jami: <span id="modalTotalSum">0</span>
-                so'm
-            </div>
-            <button class="btn-confirm" onclick="finalSubmitOrder()">BUYURTMANI TASDIQLASH</button>
-            <button onclick="closeCartModal()"
-                style="background: none; border: none; color: #888; width: 100%; margin-top: 10px; padding: 10px; cursor: pointer;">Yopish</button>
-        </div>
-    </div>
-
-    <script>
-        const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-
-        let cart = {};
-        let allProducts = [];
-        let currentCategory = 'Hammasi';
-        let isMainButtonEventAdded = false;
-
-        async function initApp() {
-            try {
-                // Determine API base url if not using relative paths (e.g. from Github pages)
-                // For now, assume relative works if hosted on the same server
-                const apiUrl = window.location.hostname.includes('github.io')
-                    ? 'http://localhost:8080/api/products?activeOnly=true' // Fallback for dev
-                    : '/api/products?activeOnly=true';
-
-                const res = await fetch(apiUrl);
-                if (res.ok) {
-                    allProducts = await res.json();
-                    renderCategoryTabs();
-                    renderProducts();
-                } else {
-                    console.error("Xatolik", res.status);
-                    tg.showAlert("Mahsulotlarni yuklashda xatolik yuz berdi.");
-                }
-            } catch (e) {
-                console.error("Tarmoq xatosi", e);
-            }
-        }
-
-        function renderCategoryTabs() {
-            const categories = ['Hammasi', ...new Set(allProducts.map(p => p.category).filter(Boolean))];
-            const bar = document.getElementById('categoryBar');
-            bar.innerHTML = categories.map(c => `
-                <div class="category-chip ${c === currentCategory ? 'active' : ''}" onclick="filterCategory('${c}')">
-                    ${c}
-                </div>
-            `).join('');
-        }
-
-        function renderProducts() {
-            const gridContainer = document.getElementById('productGrid');
-            gridContainer.innerHTML = '';
-
-            const filteredProducts = currentCategory === 'Hammasi'
-                ? allProducts
-                : allProducts.filter(p => p.category === currentCategory);
-
-            // Group by category
-            const grouped = {};
-            filteredProducts.forEach(p => {
-                const cat = p.category || 'Boshqa';
-                if (!grouped[cat]) grouped[cat] = [];
-                grouped[cat].push(p);
-            });
-
-            // Render groups
-            Object.keys(grouped).sort().forEach(cat => {
-                // Render Section Title
-                const header = document.createElement('h2');
-                header.style.marginTop = '20px';
-                header.style.marginBottom = '12px';
-                header.style.fontSize = '20px';
-                header.innerText = cat;
-                gridContainer.appendChild(header);
-
-                // Render Grid for this category
-                const grid = document.createElement('div');
-                grid.className = 'grid-container';
-
-                grouped[cat].forEach(p => {
-                    const qty = cart[p.id] || 0;
-                    
-                    // Button or Controls based on qty
-                    let controlsHtml = '';
-                    if (qty === 0) {
-                        controlsHtml = `<button class="btn-confirm" style="margin-top:0; padding: 8px; width: 100%; font-size: 13px; border-radius: 8px;" onclick="updateCart(${p.id}, 1)">Savatga qo'shish</button>`;
-                    } else {
-                        controlsHtml = `
-                            <div class="controls">
-                                <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
-                                <span>${qty}</span>
-                                <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
-                            </div>`;
-                    }
-
-                    grid.innerHTML += `
-                        <div class="product-card">
-                            <img src="https://via.placeholder.com/150?text=Olma+Store" class="product-image" alt="Product">
-                            <div class="product-name">${p.name}</div>
-                            <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
-                            <div style="width: 100%; height: 36px; display: flex; align-items: center; justify-content: center;">
-                                ${controlsHtml}
-                            </div>
-                        </div>`;
-                });
-                
-                gridContainer.appendChild(grid);
-            });
-        }
-
-        window.filterCategory = function (category) {
-            currentCategory = category;
-            renderCategoryTabs();
-            renderProducts();
-        };
-
-        window.updateCart = function (id, change) {
-            if (tg.HapticFeedback) {
-                tg.HapticFeedback.impactOccurred('light');
-            }
-            cart[id] = (cart[id] || 0) + change;
-            if (cart[id] < 0) cart[id] = 0;
-            renderProducts();
-
-            const modal = document.getElementById('cartModal');
-            if (modal.classList.contains('active')) {
-                renderCartModalContent();
-                // We update the MainButton but keep it hidden if the modal is active
-                updateMainButton();
-                tg.MainButton.hide();
-            } else {
-                updateMainButton();
-            }
-        };
-
-        function renderCartModalContent() {
-            const cartList = document.getElementById('cartList');
-            const modalTotalSum = document.getElementById('modalTotalSum');
-
-            cartList.innerHTML = '';
-            let total = 0;
-
-            Object.keys(cart).forEach(id => {
-                const qty = cart[id];
-                if (qty > 0) {
-                    const p = allProducts.find(x => x.id == id);
-                    if (p) {
-                        total += p.price * qty;
-                        cartList.innerHTML += `
-                            <div class="cart-item" style="align-items: center;">
-                                <div style="flex: 1;">
-                                    <div style="font-weight: 600;">${p.name}</div>
-                                    <div style="color: #888; font-size: 13px;">${(p.price * qty).toLocaleString()} so'm</div>
-                                </div>
-                                <div class="controls" style="width: auto; gap: 10px; margin-left: 10px;">
-                                    <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
-                                    <span>${qty}</span>
-                                    <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
-            });
-
-            modalTotalSum.innerText = total.toLocaleString();
-
-            if (total === 0) {
-                closeCartModal();
-            }
-        }
-
-        function openCartModal() {
-            renderCartModalContent();
-            const modal = document.getElementById('cartModal');
-            modal.classList.add('active');
-            tg.MainButton.hide();
-        }
-
-        window.closeCartModal = function () {
-            document.getElementById('cartModal').classList.remove('active');
-            updateMainButton();
-        };
-
-        window.finalSubmitOrder = function () {
-            const items = [];
-            let totalPrice = 0;
-
-            Object.keys(cart).forEach(id => {
-                const qty = cart[id];
-                if (qty > 0) {
-                    const p = allProducts.find(x => x.id == id);
-                    if (p) {
-                        items.push({ id: p.id, name: p.name, quantity: qty }); // Add id here
-                        totalPrice += p.price * qty;
-                    }
-                }
-            });
-
-            if (items.length === 0) return;
-
-            if (totalPrice < 80000) {
-                tg.showAlert(`Uzr, bizda minimal buyurtma miqdori 80,000 so'm. Buyurtmani davom ettirish uchun yana ${(80000 - totalPrice).toLocaleString()} so'mlik mahsulot qo'shishingiz kerak.`);
-                return;
-            }
-
-            const orderData = {
-                items: items,
-                totalPrice: totalPrice,
-                timestamp: new Date().toISOString()
-            };
-
-            tg.sendData(JSON.stringify(orderData));
-        };
-
-        function updateMainButton() {
-            let total = 0;
-            Object.keys(cart).forEach(id => {
-                const p = allProducts.find(x => x.id == id);
-                if (p) {
-                    total += p.price * cart[id];
-                }
-            });
-
-            if (total > 0) {
-                tg.MainButton.setText(`SAVATCHANI KO'RISH (${total.toLocaleString()} so'm)`);
-                tg.MainButton.show();
-                if (!isMainButtonEventAdded) {
-                    tg.MainButton.onClick(openCartModal);
-                    isMainButtonEventAdded = true;
-                }
-            } else {
-                tg.MainButton.hide();
-                if (isMainButtonEventAdded) {
-                    tg.MainButton.offClick(openCartModal);
-                    isMainButtonEventAdded = false;
-                }
-            }
-        }
-
-        initApp();
-    </script>
-</body>
-
-</html>

@@ -182,12 +182,9 @@
         <h1>🍎 Olma Store</h1>
     </div>
     <div class="categories-container" id="categoryBar">
-        <div class="category-chip active" onclick="filterCategory('Hammasi')">Hammasi</div>
-        <div class="category-chip" onclick="filterCategory('Oziq-ovqat')">Oziq-ovqat</div>
-        <div class="category-chip" onclick="filterCategory('Ichimliklar')">Ichimliklar</div>
-        <div class="category-chip" onclick="filterCategory('Elektronika')">Elektronika</div>
+        <!-- JS fills this -->
     </div>
-    <div class="grid-container" id="productGrid"></div>
+    <div id="productGrid"></div>
 
     <div class="modal-overlay" id="cartModal">
         <div class="modal-content">
@@ -245,25 +242,50 @@
         }
 
         function renderProducts() {
-            const grid = document.getElementById('productGrid');
-            grid.innerHTML = '';
+            const gridContainer = document.getElementById('productGrid');
+            gridContainer.innerHTML = '';
 
             const filteredProducts = currentCategory === 'Hammasi'
                 ? allProducts
                 : allProducts.filter(p => p.category === currentCategory);
 
+            // Group by category
+            const grouped = {};
             filteredProducts.forEach(p => {
-                const qty = cart[p.id] || 0;
-                grid.innerHTML += `
-                    <div class="product-card">
-                        <div class="product-name">${p.name}</div>
-                        <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
-                        <div class="controls">
-                            <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
-                            <span>${qty}</span>
-                            <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
-                        </div>
-                    </div>`;
+                const cat = p.category || 'Boshqa';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(p);
+            });
+
+            // Render groups
+            Object.keys(grouped).sort().forEach(cat => {
+                // Render Section Title
+                const header = document.createElement('h2');
+                header.style.marginTop = '20px';
+                header.style.marginBottom = '12px';
+                header.style.fontSize = '20px';
+                header.innerText = cat;
+                gridContainer.appendChild(header);
+
+                // Render Grid for this category
+                const grid = document.createElement('div');
+                grid.className = 'grid-container';
+
+                grouped[cat].forEach(p => {
+                    const qty = cart[p.id] || 0;
+                    grid.innerHTML += `
+                        <div class="product-card">
+                            <div class="product-name">${p.name}</div>
+                            <div class="product-price">${p.price ? p.price.toLocaleString() : 0} so'm</div>
+                            <div class="controls">
+                                <button class="btn-control" onclick="updateCart(${p.id}, -1)">-</button>
+                                <span>${qty}</span>
+                                <button class="btn-control" onclick="updateCart(${p.id}, 1)">+</button>
+                            </div>
+                        </div>`;
+                });
+                
+                gridContainer.appendChild(grid);
             });
         }
 

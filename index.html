@@ -11,25 +11,27 @@
             --text-color: #000000;
             --hint-color: #888888;
             --button-color: #0071e3;
-            --card-bg-color: #ffffff;
+            --card-bg-color: #f9f9f9;
             --border-color: #e5e5ea;
         }
 
         body {
             font-family: -apple-system, sans-serif;
             background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0; padding: 16px; padding-bottom: 100px;
         }
 
-        .header { margin-bottom: 20px; text-align: center; }
-        
+        .header { margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 20px; }
+
         .categories-container {
             display: flex; overflow-x: auto; gap: 10px;
             padding-bottom: 15px; scrollbar-width: none;
         }
+        .categories-container::-webkit-scrollbar { display: none; }
 
         .category-chip {
-            padding: 8px 16px; background: #f2f2f7; border-radius: 20px;
+            padding: 8px 16px; background: #e5e5ea; border-radius: 20px;
             font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap;
         }
 
@@ -42,40 +44,241 @@
         .product-card {
             background: var(--card-bg-color); border-radius: 16px;
             padding: 12px; border: 1px solid var(--border-color);
-            display: flex; flex-direction: column; align-items: center;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
         }
 
-        .product-image { width: 100%; aspect-ratio: 1; object-fit: contain; margin-bottom: 8px; }
-        .product-name { font-size: 14px; font-weight: 600; text-align: center; height: 40px; overflow: hidden; }
-        .product-price { color: var(--hint-color); font-size: 13px; margin: 8px 0; }
+        .product-image { 
+            width: 100%; aspect-ratio: 1; object-fit: cover; 
+            border-radius: 10px; margin-bottom: 8px; background-color: #eee;
+        }
+        .product-name { font-size: 14px; font-weight: 600; text-align: center; margin-bottom: 5px; }
+        .product-price { color: var(--hint-color); font-size: 13px; font-weight: bold; margin-bottom: 10px; }
 
         .btn-add {
             background: var(--button-color); color: #fff; border: none;
-            width: 100%; padding: 8px; border-radius: 10px; font-weight: 600;
+            width: 100%; padding: 8px; border-radius: 10px; font-weight: 600; cursor: pointer;
         }
 
         .controls {
-            display: flex; align-items: center; justify-content: space-between;
-            width: 100%; background: #f2f2f7; border-radius: 10px; padding: 4px;
+            display: none; align-items: center; justify-content: space-between;
+            width: 100%; background: #e5e5ea; border-radius: 10px; padding: 4px; box-sizing: border-box;
         }
 
         .btn-ctrl {
             background: #fff; border: 1px solid #ddd; width: 30px; height: 30px;
-            border-radius: 50%; font-weight: bold; cursor: pointer;
+            border-radius: 50%; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        /* Modal */
-        .modal {
-            position: fixed; bottom: -100%; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); transition: 0.3s; z-index: 1000;
-        }
-        .modal.active { bottom: 0; }
-        .modal-content {
-            position: absolute; bottom: 0; background: #fff; width: 100%;
-            border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box;
+        .error-message {
+            background: #ffcccc; color: #bb0000; padding: 15px; border-radius: 10px; margin-bottom: 20px;
+            font-weight: bold; text-align: center; display: none;
         }
 
-        .cart-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .loader { text-align: center; margin-top: 50px; font-weight: bold; color: var(--hint-color); }
     </style>
 </head>
 <body>
+
+    <div class="header">Olma Store</div>
+    
+    <!-- 3-QADAM: Frontend xatoliklarini ekranga chiqarish uchun quti -->
+    <div id="error-box" class="error-message"></div>
+    
+    <div id="loader" class="loader">Mahsulotlar yuklanmoqda...</div>
+
+    <div class="categories-container" id="categoryContainer"></div>
+    <div class="product-grid" id="productGrid"></div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.MainButton.hide();
+
+        let allProducts = [];
+        let categories = new Set();
+        let currentCategory = 'Barchasi';
+        let cart = {}; 
+
+        // 1 va 3-QADAM: Dinamik aqlli URL (localhost vs github.io vs server)
+        function getApiUrl() {
+            const hostname = window.location.hostname;
+            if (hostname === 'localhost' || hostname === '127.0.0.1') {
+                return 'http://localhost:8080/api/products';
+            } else if (hostname.includes('github.io')) {
+                // Diqqat: Github Pages kabi statik xostinglarda aniq backend manzili ko'rsatilishi shart!
+                return 'https://SAYTINGIZ_MANZILI.up.railway.app/api/products'; 
+            } else {
+                return '/api/products'; // O'z domeningizdan (masalan serverning o'zidan) ishlayotgan bo'lsa
+            }
+        }
+
+        function showError(message) {
+            const errorBox = document.getElementById('error-box');
+            errorBox.style.display = 'block';
+            errorBox.innerHTML = `<strong>Xatolik:</strong><br>${message}`;
+            document.getElementById('loader').style.display = 'none';
+        }
+
+        async function fetchProducts() {
+            const apiUrl = getApiUrl();
+            try {
+                // Fetch so'rovi va Catch xatolik tutish mexanizmi 
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error(`Serverdan xatolik qaytdi. Status: ${response.status}`);
+                }
+                const data = await response.json();
+                
+                // 2-QADAM: Data Mapping, o'zgaruvchilar aniq tushganligini ko'rish.
+                allProducts = data.filter(p => p.isAvailable === true); // boolean isAvailable tekshirildi
+
+                if (allProducts.length === 0) {
+                    showError("Hozircha sotuvda (isAvailable=true) mahsulotlar yo'q.");
+                    return;
+                }
+
+                // 4-QADAM: Kategoriyalash va "Boshqa" fallback
+                categories.add('Barchasi');
+                allProducts.forEach(p => {
+                    if (!p.category || p.category.trim() === "") {
+                        p.category = "Boshqa"; // Xatolikni oldini olish
+                    }
+                    categories.add(p.category);
+                });
+
+                document.getElementById('loader').style.display = 'none';
+                renderCategories();
+                renderProducts();
+
+            } catch (error) {
+                // Console'ga emas, saytga chiqishi (3-QADAM)
+                showError(`${error.message}<br><br><small>So'rov manzili: ${apiUrl}</small><br><small>Agar siz GitHub Pages'dan ishlayotgan bo'lsangiz, getApiUrl() ichidagi linkni to'g'irlang.</small>`);
+                console.error("API xatolik:", error);
+            }
+        }
+
+        function renderCategories() {
+            const container = document.getElementById('categoryContainer');
+            container.innerHTML = '';
+            
+            categories.forEach(cat => {
+                const chip = document.createElement('div');
+                chip.className = `category-chip ${cat === currentCategory ? 'active' : ''}`;
+                chip.innerText = cat;
+                chip.onclick = () => {
+                    currentCategory = cat;
+                    renderCategories();
+                    renderProducts();
+                };
+                container.appendChild(chip);
+            });
+        }
+
+        function renderProducts() {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            const filteredProducts = currentCategory === 'Barchasi' 
+                ? allProducts 
+                : allProducts.filter(p => p.category === currentCategory);
+
+            filteredProducts.forEach(product => {
+                const qty = cart[product.id] || 0;
+                
+                const card = document.createElement('div');
+                card.className = 'product-card';
+
+                const imgUrl = product.imageUrl && product.imageUrl.trim() !== "" ? product.imageUrl : "https://via.placeholder.com/150?text=Olma+Store";
+                const img = `<img src="${imgUrl}" class="product-image" alt="${product.name}">`;
+
+                const nameInfo = `<div class="product-name">${product.name}</div>`;
+                const priceInfo = `<div class="product-price">${product.price.toLocaleString('uz-UZ')} UZS</div>`;
+
+                const btnAddId = `btn-add-${product.id}`;
+                const controlsId = `controls-${product.id}`;
+                const countId = `count-${product.id}`;
+
+                const controlsHTML = `
+                    <button id="${btnAddId}" class="btn-add" style="display: ${qty > 0 ? 'none' : 'block'}" onclick="addToCart(${product.id})">Qo'shish</button>
+                    <div id="${controlsId}" class="controls" style="display: ${qty > 0 ? 'flex' : 'none'}">
+                        <div class="btn-ctrl" onclick="updateQty(${product.id}, -1)">-</div>
+                        <span id="${countId}" style="font-weight:bold">${qty}</span>
+                        <div class="btn-ctrl" onclick="updateQty(${product.id}, 1)">+</div>
+                    </div>
+                `;
+
+                card.innerHTML = img + nameInfo + priceInfo + controlsHTML;
+                grid.appendChild(card);
+            });
+            updateMainButton();
+        }
+
+        window.addToCart = function(id) {
+            cart[id] = 1;
+            renderProducts();
+        }
+
+        window.updateQty = function(id, change) {
+            if (cart[id]) {
+                cart[id] += change;
+                if (cart[id] <= 0) {
+                    delete cart[id];
+                }
+            }
+            renderProducts();
+        }
+
+        function mainButtonHandler() {
+            let totalSum = 0;
+            const orderData = [];
+            allProducts.forEach(p => {
+                if (cart[p.id]) {
+                    orderData.push({ id: p.id, name: p.name, price: p.price, quantity: cart[p.id] });
+                    totalSum += p.price * cart[p.id];
+                }
+            });
+            
+            // Xavfsizlik testi (oldin 80,000 UZS haqida aytilgandi)
+            if (totalSum > 0 && totalSum < 80000) {
+                tg.showAlert("Eng kam buyurtma summasi 80,000 UZS!");
+                return;
+            }
+            
+            // Yuborish
+            tg.sendData(JSON.stringify({ items: orderData, total: totalSum }));
+        }
+
+        function updateMainButton() {
+            let totalSum = 0;
+            let totalItems = 0;
+            allProducts.forEach(p => {
+                if (cart[p.id]) {
+                    totalSum += p.price * cart[p.id];
+                    totalItems += cart[p.id];
+                }
+            });
+
+            tg.MainButton.offClick(mainButtonHandler);
+            if (totalItems > 0) {
+                tg.MainButton.show();
+                
+                // Agar 80k dan kam bo'lsa ogohlantirish textini chiqarish mumkin:
+                if (totalSum < 80000) {
+                     tg.MainButton.text = `Kamida 80,000 UZS kerak (${totalSum.toLocaleString('uz-UZ')})`;
+                     tg.MainButton.color = "#FF0000"; // Qizil
+                } else {
+                     tg.MainButton.text = `Buyurtma Berish (${totalSum.toLocaleString('uz-UZ')} UZS)`;
+                     tg.MainButton.color = "#0071e3"; // Ko'k
+                }
+                
+                tg.MainButton.onClick(mainButtonHandler);
+            } else {
+                tg.MainButton.hide();
+            }
+        }
+
+        // Dasturni yuklash
+        fetchProducts();
+    </script>
+</body>
+</html>
